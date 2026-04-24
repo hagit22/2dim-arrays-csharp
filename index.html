@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>מערכים דו-מימדיים</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      direction: rtl;
+      background: #f0f4f8;
+    }
+
+    .presentation-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: white;
+      min-height: 100vh;
+      box-shadow: 0 0 30px rgba(0,0,0,0.1);
+    }
+
+    .slide {
+      padding: 50px 60px 100px 60px;
+      min-height: 100vh;
+      display: none;
+      position: relative;
+    }
+
+    .slide.active { display: block; }
+
+    h2 {
+      font-size: 2.2rem;
+      color: #1e3a8a;
+      border-bottom: 4px solid #f97316;
+      padding-bottom: 12px;
+      margin-bottom: 25px;
+    }
+
+    h3 {
+      font-size: 1.4rem;
+      color: #0ea5e9;
+      margin: 18px 0 10px 0;
+    }
+
+    p, li {
+      font-size: 1.2rem;
+      color: #374151;
+      line-height: 1.7;
+    }
+
+    ul {
+      padding-right: 25px;
+      margin: 10px 0;
+    }
+
+    ul li { margin-bottom: 8px; }
+
+    .question-box {
+      background: #f8fafc;
+      border: 3px solid #0ea5e9;
+      border-radius: 16px;
+      padding: 28px 35px;
+      font-size: 1.35rem;
+      color: #1e3a8a;
+      margin: 25px 0;
+    }
+
+    .info-box {
+      background: #eff6ff;
+      border-right: 5px solid #1e3a8a;
+      padding: 16px 22px;
+      border-radius: 8px;
+      margin: 16px 0;
+      font-size: 1.1rem;
+      color: #1e3a8a;
+      line-height: 1.7;
+    }
+
+    .code-display {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 22px 25px;
+      border-radius: 10px;
+      margin: 16px 0;
+      direction: ltr;
+      text-align: left;
+      font-family: 'Courier New', monospace;
+      font-size: 1.05rem;
+      line-height: 1.85;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .code-keyword { color: #93c5fd; }
+    .code-type    { color: #6ee7b7; }
+    .code-comment { color: #94a3b8; }
+    .code-string  { color: #fca5a5; }
+    .code-number  { color: #fcd34d; }
+
+    /* Clickable reveal */
+    .clickable-item {
+      opacity: 0.05;
+      filter: blur(1px);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .clickable-item.revealed {
+      opacity: 1;
+      filter: blur(0);
+    }
+    .clickable-item:hover:not(.revealed) { opacity: 0.4; }
+
+    /* Button reveal */
+    .reveal-btn {
+      background: linear-gradient(135deg, #1e3a8a, #0ea5e9);
+      color: white;
+      border: none;
+      padding: 11px 26px;
+      border-radius: 25px;
+      font-size: 1.05rem;
+      cursor: pointer;
+      margin: 14px 0;
+      transition: all 0.3s ease;
+      display: inline-block;
+    }
+    .reveal-btn:hover {
+      background: linear-gradient(135deg, #0ea5e9, #1e3a8a);
+      transform: translateY(-2px);
+    }
+
+    .answer-box {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white;
+      padding: 20px 25px;
+      border-radius: 12px;
+      font-size: 1.15rem;
+      margin: 14px 0;
+      display: none;
+      line-height: 1.7;
+    }
+    .answer-box.show {
+      display: block;
+      animation: slideIn 0.4s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-15px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Table */
+    table {
+      border-collapse: collapse;
+      margin: 18px auto;
+      direction: ltr;
+    }
+    table td, table th {
+      border: 2px solid #1e3a8a;
+      padding: 10px 18px;
+      text-align: center;
+      font-size: 1.05rem;
+    }
+    table th {
+      background: #1e3a8a;
+      color: white;
+    }
+    table td { background: #f8fafc; color: #374151; }
+
+    /* Two column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      margin: 18px 0;
+    }
+
+    /* Syntax reference table */
+    .syntax-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      direction: ltr;
+    }
+    .syntax-table th {
+      background: #1e3a8a;
+      color: white;
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 1rem;
+    }
+    .syntax-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 0.95rem;
+      vertical-align: top;
+    }
+    .syntax-table tr:nth-child(even) td { background: #f8fafc; }
+    .syntax-table td:first-child {
+      font-family: 'Courier New', monospace;
+      color: #1e3a8a;
+      white-space: pre;
+      width: 55%;
+    }
+    .syntax-table td:last-child {
+      color: #374151;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .center { text-align: center; }
+
+    /* Navigation */
+    .nav-buttons {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 1000;
+    }
+    .nav-btn {
+      background: #1e3a8a;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    .nav-btn:hover { background: #0ea5e9; transform: translateY(-2px); }
+    .nav-btn:disabled { background: #9ca3af; cursor: not-allowed; transform: none; }
+
+    .slide-number {
+      position: fixed;
+      bottom: 22px;
+      right: 40px;
+      font-size: 14px;
+      color: #6b7280;
+      background: rgba(0,0,0,0.08);
+      padding: 6px 12px;
+      border-radius: 12px;
+      z-index: 1000;
+    }
+
+    /* Schematic 3D-ish multi-dim visual */
+    .multidim-wrap {
+      display: flex;
+      gap: 30px;
+      align-items: flex-start;
+      justify-content: center;
+      margin: 25px 0;
+      direction: ltr;
+    }
+    .dim-block {
+      text-align: center;
+    }
+    .dim-block p {
+      font-size: 1rem;
+      color: #6b7280;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+<div class="presentation-container">
+
+  <!-- ===================== SLIDE 1: Opening Exercise ===================== -->
+  <div class="slide active">
+    <h2>✏️ תרגיל פתיחה</h2>
+
+    <div class="question-box">
+      <strong>כתבו את התוכנית הבאה ב-C# :</strong>
+      <ul style="margin-top: 15px;">
+        <li>נתונה כיתה בבית ספר. קלטו מהמשתמש את מספר המקצועות הנלמדים בכיתה</li>
+        <li>נניח שיש <strong>3 תלמידים</strong> בכיתה</li>
+        <li>עבור כל תלמיד, צרו ציונים אקראיים (בטווח: 0-100) על פי מספר המקצועות</li>
+        <li>א. הדפיסו את <strong>הממוצע לכל תלמיד</strong></li>
+        <li>ב. הדפיסו את <strong>הממוצע לכל מקצוע</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 2: Naive solution + bridge ===================== -->
+  <div class="slide">
+    <h2>💬 כיצד פתרתם?</h2>
+
+    <p>פתרון טבעי — מערך לכל תלמיד:</p>
+
+    <div class="code-display"><span class="code-type">int</span> numSubjects = <span class="code-type">int</span>.Parse(Console.ReadLine());
+Random rand = <span class="code-keyword">new</span> Random();
+
+<span class="code-type">int</span>[] student0 = <span class="code-keyword">new</span> <span class="code-type">int</span>[numSubjects];
+<span class="code-type">int</span>[] student1 = <span class="code-keyword">new</span> <span class="code-type">int</span>[numSubjects];
+<span class="code-type">int</span>[] student2 = <span class="code-keyword">new</span> <span class="code-type">int</span>[numSubjects];
+
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numSubjects; i++)
+{
+    student0[i] = rand.Next(<span class="code-number">0</span>, <span class="code-number">101</span>);
+    student1[i] = rand.Next(<span class="code-number">0</span>, <span class="code-number">101</span>);
+    student2[i] = rand.Next(<span class="code-number">0</span>, <span class="code-number">101</span>);
+}
+
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numSubjects; i++)
+{
+    <span class="code-type">double</span> avg = (student0[i] + student1[i] + student2[i]) / <span class="code-number">3.0</span>;
+    Console.WriteLine(<span class="code-string">"Subject "</span> + i + <span class="code-string">": average = "</span> + avg);
+}</div>
+
+    <div class="center">
+      <button class="reveal-btn" onclick="showAnswer(1)" id="answer-btn1">מה הבעיה?</button>
+    </div>
+
+    <div class="answer-box" id="answer1">
+      <strong>מה אם היו לנו 30 תלמידים? 100 תלמידים?</strong><br>
+      30 מערכים נפרדים? זה לא סביר.<br><br>
+      יש כלי שנועד בדיוק לזה ← <strong>מערך דו-מימדי</strong>
+      <div class="center" style="margin-top:18px;">
+        <table>
+          <tr><th></th><th>מקצוע 0</th><th>מקצוע 1</th><th>מקצוע 2</th><th>מקצוע 3</th></tr>
+          <tr><th>תלמיד 0</th><td>85</td><td>90</td><td>78</td><td>92</td></tr>
+          <tr><th>תלמיד 1</th><td>72</td><td>68</td><td>95</td><td>80</td></tr>
+          <tr><th>תלמיד 2</th><td>88</td><td>74</td><td>82</td><td>76</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 3: Demo part 1 — declaration + random fill ===================== -->
+  <div class="slide">
+    <h2>🔧 הפתרון — שלב 1: הגדרה והשמה</h2>
+
+    <div class="code-display"><span class="code-type">int</span> numSubjects = <span class="code-type">int</span>.Parse(Console.ReadLine());
+<span class="code-type">int</span> numStudents = <span class="code-number">3</span>;
+Random rand = <span class="code-keyword">new</span> Random();
+
+<span class="code-comment">// הגדרת המערך הדו-מימדי</span>
+<span class="code-type">int</span>[,] grades = <span class="code-keyword">new</span> <span class="code-type">int</span>[numStudents, numSubjects];
+
+<span class="code-comment">// מילוי בציונים אקראיים</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numStudents; i++)
+{
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> j = <span class="code-number">0</span>; j &lt; numSubjects; j++)
+    {
+        grades[i, j] = rand.Next(<span class="code-number">0</span>, <span class="code-number">101</span>);
+    }
+}</div>
+
+    <div class="info-box">
+      📌 <strong>i</strong> = אינדקס התלמיד (שורה) &nbsp;|&nbsp; <strong>j</strong> = אינדקס המקצוע (עמודה)
+    </div>
+  </div>
+  <!-- ===================== SLIDE 3.5: Demo part 2A — average per student ===================== -->
+  <div class="slide">
+    <h2>🔧 הפתרון — שלב 2: ממוצע לכל תלמיד</h2>
+
+    <div class="code-display"><span class="code-comment">// חישוב והדפסת ממוצע לכל תלמיד</span>
+  <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numStudents; i++)
+  {
+      <span class="code-type">int</span> sum = <span class="code-number">0</span>;
+      <span class="code-keyword">for</span> (<span class="code-type">int</span> j = <span class="code-number">0</span>; j &lt; numSubjects; j++)
+      {
+          sum = sum + grades[i, j];
+      }
+      <span class="code-type">double</span> avg = (<span class="code-type">double</span>)sum / numSubjects;
+      Console.WriteLine(<span class="code-string">"Student "</span> + i + <span class="code-string">": average = "</span> + avg);
+  }</div>
+
+    <div class="info-box">
+      📌 הלולאה <strong>החיצונית</strong> עוברת על תלמידים (שורות)<br>
+      הלולאה <strong>הפנימית</strong> מסכמת את כל ציוני אותו תלמיד
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 4: Demo part 2B — average per subject ===================== -->
+  <div class="slide">
+    <h2>🔧 הפתרון — שלב 3: ממוצע לכל מקצוע</h2>
+
+    <div class="code-display"><span class="code-comment">// חישוב והדפסת ממוצע לכל מקצוע</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numSubjects; i++)
+{
+    <span class="code-type">int</span> sum = <span class="code-number">0</span>;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> j = <span class="code-number">0</span>; j &lt; numStudents; j++)
+    {
+        sum = sum + grades[j, i];
+    }
+    <span class="code-type">double</span> avg = (<span class="code-type">double</span>)sum / numStudents;
+    Console.WriteLine(<span class="code-string">"Subject "</span> + i + <span class="code-string">": average = "</span> + avg);
+}</div>
+
+    <div class="info-box">
+      📌 הלולאה <strong>החיצונית</strong> עוברת על מקצועות (עמודות)<br>
+      הלולאה <strong>הפנימית</strong> מסכמת את ציוני כל התלמידים באותו מקצוע
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 5: Teach — declaration ===================== -->
+  <div class="slide">
+    <h2>📘 הגדרת מערך דו-מימדי</h2>
+
+    <div class="code-display"><span class="code-type">int</span>[,] grades = <span class="code-keyword">new</span> <span class="code-type">int</span>[numStudents, numSubjects];</div>
+
+    <div class="info-box">
+      המספר הראשון = <strong>מספר השורות</strong> (תלמידים)<br>
+      המספר השני = <strong>מספר העמודות</strong> (מקצועות)<br>
+      כל התאים מאותחלים אוטומטית ל־<span dir="ltr" style="font-family:monospace;">0</span>
+    </div>
+
+    <div class="center" style="margin-top: 20px;">
+      <table>
+        <tr><th></th><th>עמודה 0</th><th>עמודה 1</th><th>עמודה 2</th></tr>
+        <tr><th>שורה 0</th><td>0</td><td>0</td><td>0</td></tr>
+        <tr><th>שורה 1</th><td>0</td><td>0</td><td>0</td></tr>
+        <tr><th>שורה 2</th><td>0</td><td>0</td><td>0</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 6: Teach — writing ===================== -->
+  <div class="slide">
+    <h2>📘 כתיבה לתא במערך</h2>
+
+    <div class="code-display"><span class="code-comment">// כתיבה לתא בודד</span>
+grades[<span class="code-number">1</span>, <span class="code-number">2</span>] = <span class="code-number">95</span>;
+
+<span class="code-comment">// כתיבה בלולאה מקוננת</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numStudents; i++)
+{
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> j = <span class="code-number">0</span>; j &lt; numSubjects; j++)
+    {
+        grades[i, j] = rand.Next(<span class="code-number">0</span>, <span class="code-number">101</span>);
+    }
+}</div>
+
+    <div class="info-box">
+      📌 גישה לתא: <span dir="ltr" style="font-family:monospace;">grades[שורה, עמודה]</span><br>
+      הלולאה החיצונית על שורות (i), הפנימית על עמודות (j)
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 7: Teach — reading ===================== -->
+  <div class="slide">
+    <h2>📘 קריאה מתא במערך</h2>
+
+    <div class="code-display"><span class="code-comment">// קריאה מתא בודד</span>
+<span class="code-type">int</span> g = grades[<span class="code-number">0</span>, <span class="code-number">1</span>];
+Console.WriteLine(grades[<span class="code-number">0</span>, <span class="code-number">1</span>]);
+
+<span class="code-comment">// קריאה בלולאה — סכימה לפי מקצוע</span>
+<span class="code-keyword">for</span> (<span class="code-type">int</span> j = <span class="code-number">0</span>; j &lt; numSubjects; j++)
+{
+    <span class="code-type">int</span> sum = <span class="code-number">0</span>;
+    <span class="code-keyword">for</span> (<span class="code-type">int</span> i = <span class="code-number">0</span>; i &lt; numStudents; i++)
+    {
+        sum = sum + grades[i, j];
+    }
+    <span class="code-type">double</span> avg = (<span class="code-type">double</span>)sum / numStudents;
+    Console.WriteLine(<span class="code-string">"Subject "</span> + j + <span class="code-string">": average = "</span> + avg);
+}</div>
+  </div>
+
+  <!-- ===================== SLIDE 8: Teach — inline initialization ===================== -->
+  <div class="slide">
+    <h2>📘 אתחול עם ערכים ידועים מראש</h2>
+
+    <p>כאשר הערכים ידועים מראש, ניתן לאתחל ישירות:</p>
+
+    <div class="code-display"><span class="code-type">int</span>[,] grades = <span class="code-keyword">new</span> <span class="code-type">int</span>[,]
+{
+    { <span class="code-number">85</span>, <span class="code-number">90</span>, <span class="code-number">78</span> },   <span class="code-comment">// תלמיד 0</span>
+    { <span class="code-number">72</span>, <span class="code-number">68</span>, <span class="code-number">95</span> },   <span class="code-comment">// תלמיד 1</span>
+    { <span class="code-number">88</span>, <span class="code-number">74</span>, <span class="code-number">82</span> }    <span class="code-comment">// תלמיד 2</span>
+};</div>
+
+    <div class="info-box">
+      כל סוגריים מסולסלים פנימיים = <strong>שורה אחת</strong><br>
+      הערכים בתוכם = ערכי העמודות של אותה שורה
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 9: Full syntax reference ===================== -->
+  <div class="slide">
+    <h2>📋 סיכום תחביר</h2>
+
+    <table class="syntax-table">
+      <tr>
+        <th>קוד</th>
+        <th>תיאור</th>
+      </tr>
+      <tr>
+        <td>int[,] arr = new int[rows, cols];</td>
+        <td>הגדרה לפי גודל</td>
+      </tr>
+      <tr>
+        <td>int[,] arr = new int[,] { {1,2}, {3,4} };</td>
+        <td>הגדרה עם ערכים</td>
+      </tr>
+      <tr>
+        <td>arr[i, j] = value;</td>
+        <td>כתיבה לתא</td>
+      </tr>
+      <tr>
+        <td>int x = arr[i, j];</td>
+        <td>קריאה מתא</td>
+      </tr>
+      <tr>
+        <td>for (int i ...) for (int j ...)</td>
+        <td>מעבר על כל התאים</td>
+      </tr>
+      <!--tr>
+        <td>arr.GetLength(0)</td>
+        <td>מספר השורות</td>
+      </tr>
+      <tr>
+        <td>arr.GetLength(1)</td>
+        <td>מספר העמודות</td>
+      </tr-->
+    </table>
+  </div>
+
+  <!-- ===================== SLIDE 10: GetLength riddle ===================== -->
+  <div class="slide">
+    <h2>🤔 שאלה</h2>
+
+    <div class="question-box">
+      איך מקבלים את האורך של מערך <strong>חד-מימדי</strong>?
+    </div>
+
+    <div class="center">
+      <button class="reveal-btn" onclick="showAnswer(2)" id="answer-btn2">הצג</button>
+    </div>
+    <div id="answer2" style="display:none; font-size:1.2rem; margin:15px 0; color:#1e3a8a; text-align:center; font-weight: 700;">
+      התכונה: <span dir="ltr" style="font-family:monospace;">arr.Length</span>
+    </div>
+
+    <div class="question-box" style="margin-top: 25px;">
+      במערך דו-מימדי — איך נקבל את <strong>מספר השורות</strong>? ואת <strong>מספר העמודות</strong>?
+    </div>
+
+    <div class="center">
+      <button class="reveal-btn" onclick="showAnswer(3)" id="answer-btn3">הצג</button>
+    </div>
+    <div id="answer3" style="display:none; font-size:1.2rem; margin:15px 0; color:#1e3a8a; text-align:center; font-weight: 700;">
+      <span dir="ltr" style="font-family:monospace;">arr.RowLength</span><br>
+      <span dir="ltr" style="font-family:monospace;">arr.ColumnLength</span>
+    </div>
+
+    <div class="center">
+      <button class="reveal-btn" onclick="showAnswer(5)" id="answer-btn5" style="display:none;">המשך</button>
+    </div>
+    <div id="answer5" style="display:none; font-size:1.2rem; margin:15px 0; text-align:center; font-weight: 700;">
+      <span dir="ltr" style="font-family:monospace; text-decoration:line-through; color:#9ca3af;">arr.RowLength</span><br>
+      <span dir="ltr" style="font-family:monospace; text-decoration:line-through; color:#9ca3af;">arr.ColumnLength</span><br><br>
+      <span dir="ltr" style="font-family:monospace; color:#1e3a8a;">arr.GetLength(0)</span> &nbsp;←&nbsp; <span style="font-family:'Segoe UI';">שורות</span><br>
+      <span dir="ltr" style="font-family:monospace; color:#1e3a8a;">arr.GetLength(1)</span> &nbsp;←&nbsp; <span style="font-family:'Segoe UI';">עמודות</span>
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 11: Multi-dimensional schematic ===================== -->
+  <div class="slide">
+    <h2>🌐 מעבר לממדים נוספים</h2>
+
+    <div class="multidim-wrap">
+
+      <div class="dim-block">
+        <table>
+          <tr><td>1</td><td>2</td><td>3</td></tr>
+        </table>
+        <p>מערך חד-מימדי<br><span dir="ltr" style="font-family:monospace;">int[3]</span></p>
+      </div>
+
+      <div class="dim-block" style="font-size:2rem; padding-top:20px;">→</div>
+
+      <div class="dim-block">
+        <table>
+          <tr><td>1</td><td>2</td><td>3</td><td>4</td></tr>
+          <tr><td>5</td><td>6</td><td>7</td><td>8</td></tr>
+          <tr><td>9</td><td>10</td><td>11</td><td>12</td></tr>
+        </table>
+        <p>מערך דו-מימדי<br><span dir="ltr" style="font-family:monospace;">int[3,4]</span></p>
+      </div>
+
+      <div class="dim-block" style="font-size:2rem; padding-top:20px;">→</div>
+
+      <div class="dim-block">
+        <div style="font-size: 5rem; line-height:1;">🧊</div>
+        <p>מערך תלת-מימדי<br><span dir="ltr" style="font-family:monospace;">int[2,2,2]</span></p>
+      </div>
+      
+    </div>
+
+    <div class="info-box center">
+      C# תומך בכל מספר של ממדים — <span dir="ltr" style="font-family:monospace;">GetLength(n)</span> מחזיר את גודל הממד ה-n
+    </div>
+  </div>
+
+  <!-- ===================== SLIDE 12: Challenges ===================== -->
+  <div class="slide">
+    <h2>🧠 אתגרים</h2>
+
+    <div class="info-box">
+      השתמשו במערך grades שיצרתם — 3 תלמידים, numSubjects מקצועות, ציונים אקראיים.
+    </div>
+
+    <ol style="margin-top: 20px; padding-right: 25px;">
+      <li style="margin-bottom: 18px; font-size:1.25rem;">מצאו את הציון המקסימלי <strong>לכל תלמיד</strong></li>
+      <li style="margin-bottom: 18px; font-size:1.25rem;">מצאו את הציון המקסימלי <strong>לכל מקצוע</strong></li>
+      <li style="margin-bottom: 18px; font-size:1.25rem;">מצאו את הציון המקסימלי <strong>הכולל</strong> במערך</li>
+      <li style="margin-bottom: 18px; font-size:1.25rem;">ספרו כמה ציונים הם <strong>מעל 80</strong></li>
+      <li style="margin-bottom: 18px; font-size:1.25rem;">מצאו את <strong>התלמיד עם הממוצע הגבוה ביותר</strong></li>
+    </ol>
+  </div>
+
+  <!-- ===================== SLIDE 13: Summary ===================== -->
+  <div class="slide">
+    <h2>📝 סיכום</h2>
+
+    <div class="two-col">
+      <div class="info-box">
+        <strong>הגדרה לפי גודל:</strong><br>
+        <span dir="ltr" style="font-family:monospace;">int[,] arr = new int[rows, cols];</span>
+      </div>
+      <div class="info-box">
+        <strong>הגדרה עם ערכים:</strong><br>
+        <span dir="ltr" style="font-family:monospace;">int[,] arr = new int[,] {{1,2},{3,4}};</span>
+      </div>
+      <div class="info-box">
+        <strong>כתיבה וקריאה:</strong><br>
+        <span dir="ltr" style="font-family:monospace;">arr[i, j] = val; &nbsp; x = arr[i, j];</span>
+      </div>
+      <div class="info-box">
+        <strong>גדלים:</strong><br>
+        <span dir="ltr" style="font-family:monospace;">arr.GetLength(0) / arr.GetLength(1)</span>
+      </div>
+    </div>
+
+    <div class="info-box" style="text-align:center; margin-top: 10px; font-size:1.15rem;">
+      🔁 מעבר על כל המערך = <strong>לולאה בתוך לולאה</strong><br>
+      לולאה חיצונית על שורות (i) ← לולאה פנימית על עמודות (j)
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav-buttons">
+  <button class="nav-btn" onclick="prevSlide()" id="prev-btn" disabled>הקודם →</button>
+  <button class="nav-btn" onclick="nextSlide()" id="next-btn">← הבא</button>
+</div>
+
+<div class="slide-number" id="slide-number">
+  14 / <span id="current-slide">1</span>
+</div>
+
+<script>
+  let currentSlide = 0;
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+
+  function showSlide(n) {
+    slides[currentSlide].classList.remove('active');
+    currentSlide = n;
+    slides[currentSlide].classList.add('active');
+    document.getElementById('prev-btn').disabled = currentSlide === 0;
+    document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+    document.getElementById('current-slide').textContent = currentSlide + 1;
+  }
+
+  function nextSlide() {
+    if (currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+  }
+
+  function prevSlide() {
+    if (currentSlide > 0) showSlide(currentSlide - 1);
+  }
+
+  function showAnswer(num) {
+    document.getElementById('answer' + num).style.display = 'block';
+    document.getElementById('answer-btn' + num).style.display = 'none';
+    if (num === 3) {
+      document.getElementById('answer-btn5').style.display = 'inline-block';
+    }
+    if (num === 5) {
+      document.getElementById('answer3').style.display = 'none';
+    }
+  }
+  
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') prevSlide();
+    else if (e.key === 'ArrowLeft' || e.key === ' ') nextSlide();
+  });
+</script>
+
+<div style="position:fixed; bottom:9px; left:20%; transform:translateX(-50%); font-size:0.75rem; color:rgba(0,0,0,0.25); z-index:1000; pointer-events:none; white-space:nowrap;">
+  חגית ידוב © Hagit Yidov, 2026 
+</div>
+
+</body>
+</html>
